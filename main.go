@@ -21,7 +21,6 @@ func main() {
 			case t := <-ticker.C:
 				println("Hello, world", time.Now().Sub(t).String())
 			case <-quit:
-				println("Received signal to stop")
 				ticker.Stop()
 				wg.Done()
 				return
@@ -31,15 +30,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		signalChan := make(chan os.Signal, 1)
+		signalChan := make(chan os.Signal, 0)
 		signal.Notify(signalChan, os.Interrupt)
-		for _ = range signalChan {
-			fmt.Println("\nReceived an interrupt, stopping services...")
-			quit <- nil
-			wg.Done()
-		}
+		<-signalChan
+		fmt.Println("\nAborting...")
+		quit <- nil
+		wg.Done()
 	}()
 
 	wg.Wait()
-
 }
