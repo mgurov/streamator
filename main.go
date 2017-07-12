@@ -33,6 +33,7 @@ func main() {
 		signalChan := make(chan os.Signal, 0)
 		signal.Notify(signalChan, os.Interrupt)
 		<-signalChan
+		signal.Stop(signalChan)
 		fmt.Println("\nAborting...")
 		quit <- nil
 		wg.Done()
