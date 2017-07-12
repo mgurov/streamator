@@ -23,8 +23,8 @@ func main() {
 			select {
 			case t := <-ticker.C:
 				log.WithField("type", "repeating").
-					WithField("duration", "somehow").
-					Error("Hello, world ", time.Now().Sub(t).String())
+					WithField("duration", time.Now().Sub(t)).
+					Error("Hello, world ", )
 			case <-quit:
 				ticker.Stop()
 				wg.Done()
