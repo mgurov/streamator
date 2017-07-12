@@ -1,0 +1,19 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "rAtxHI1ocXvoo88jgRIBAeWH2wc=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "1fe8319fcaef78ef9220c9b05178df0f871dbc5d",
+			"revisionTime": "2017-07-12T16:35:25Z"
+		},
+		{
+			"checksumSHA1": "nf+CWRQfmxmZkdYRpxEuA8u+qwI=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "abf9c25f54453410d0c6668e519582a9e1115027",
+			"revisionTime": "2017-07-10T15:57:01Z"
+		}
+	],
+	"rootPath": "github.com/mgurov/streamator"
+}
