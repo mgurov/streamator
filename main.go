@@ -62,17 +62,28 @@ func (h *cappedInMemoryRecorderHook) Copy() []*logrus.Entry {
 	return result
 }
 
+var log = logrus.New()
+
 func main() {
 
 	ourHook := newCappedInMemoryRecorderHook(20)
-	var log = logrus.New()
 	log.Hooks.Add(ourHook)
 
 	quit := make(chan interface{})
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go func() {
+	go tick(&wg, quit)
+
+	wg.Add(1)
+	go listenToCtrlC(&wg, quit)
+
+	wg.Wait()
+
+	fmt.Printf("%#v\n", ourHook.Copy())
+}
+
+func tick(wg *sync.WaitGroup, quit <-chan interface{}) {
 		ticker := time.NewTicker(1 * time.Second)
 		for {
 			select {
@@ -86,14 +97,6 @@ func main() {
 				return
 			}
 		}
-	}()
-
-	wg.Add(1)
-	go listenToCtrlC(&wg, quit)
-
-	wg.Wait()
-
-	fmt.Printf("%#v\n", ourHook.Copy())
 }
 
 func listenToCtrlC(wg *sync.WaitGroup, quit chan<- interface{}) {
