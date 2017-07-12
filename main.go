@@ -6,7 +6,10 @@ import (
 	"os/signal"
 	"sync"
 	"time"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.New()
 
 func main() {
 
@@ -19,7 +22,9 @@ func main() {
 		for {
 			select {
 			case t := <-ticker.C:
-				println("Hello, world", time.Now().Sub(t).String())
+				log.WithField("type", "repeating").
+					WithField("duration", "somehow").
+					Error("Hello, world ", time.Now().Sub(t).String())
 			case <-quit:
 				ticker.Stop()
 				wg.Done()
