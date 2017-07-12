@@ -89,7 +89,14 @@ func main() {
 	}()
 
 	wg.Add(1)
-	go func() {
+	go listenToCtrlC(&wg, quit)
+
+	wg.Wait()
+
+	fmt.Printf("%#v\n", ourHook.Copy())
+}
+
+func listenToCtrlC(wg *sync.WaitGroup, quit chan<- interface{}) {
 		signalChan := make(chan os.Signal, 0)
 		signal.Notify(signalChan, os.Interrupt)
 		<-signalChan
@@ -97,9 +104,4 @@ func main() {
 		fmt.Println("\nAborting...")
 		quit <- nil
 		wg.Done()
-	}()
-
-	wg.Wait()
-
-	fmt.Printf("%#v\n", ourHook.Copy())
 }
