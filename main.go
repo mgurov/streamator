@@ -9,9 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"flag"
 	"strconv"
+
+	"github.com/sirupsen/logrus"
 )
 
 var log = logrus.New()
@@ -24,18 +25,20 @@ func main() {
 	ourHook := newCappedInMemoryRecorderHook(20)
 	log.Hooks.Add(ourHook)
 
+	wg := &sync.WaitGroup{}
+
 	quit := make(chan interface{})
-	var wg sync.WaitGroup
-
 	wg.Add(1)
-	go tick(&wg, quit)
+	go tick(wg, quit)
 
-	go startHTTP(*portFlag)
+	quitServer := make(chan interface{})
+	startHTTP(*portFlag, wg, quitServer)
 
 	listenToCtrlC()
 
-	fmt.Println("\nAborting...")
+	log.Info("Stopping the services")
 	quit <- nil
+	quitServer <- nil
 	wg.Wait()
 	fmt.Printf("%#v\n", ourHook.Copy())
 }
@@ -63,11 +66,27 @@ func listenToCtrlC() {
 	signal.Stop(signalChan)
 }
 
-func startHTTP(port int) {
+func startHTTP(port int, wg *sync.WaitGroup, quit <-chan interface{}) {
+	wg.Add(1)
+
 	http.HandleFunc("/ticks", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 	})
 
-	log.Info("Starting at port ", port)
-	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(port), nil))
+	server := &http.Server{Addr: ":" + strconv.Itoa(port), Handler: nil}
+
+	go func() {
+		<-quit
+		log.Info("Stopping the web server")
+		server.Close()
+	}()
+
+	go func() {
+		log.Info("Starting at port ", port)
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+		wg.Done()
+	}()
+
 }
