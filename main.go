@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,13 +15,13 @@ import (
 )
 
 var log = logrus.New()
+var ourHook = newCappedInMemoryRecorderHook(20)
 
 func main() {
 
 	portFlag := flag.Int("port", 8080, "port to listen at")
 	flag.Parse()
 
-	ourHook := newCappedInMemoryRecorderHook(20)
 	log.Hooks.Add(ourHook)
 
 	wg := &sync.WaitGroup{}
@@ -70,7 +69,23 @@ func startHTTP(port int, wg *sync.WaitGroup, quit <-chan interface{}) {
 	wg.Add(1)
 
 	http.HandleFunc("/ticks", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+
+		formatter := logrus.JSONFormatter{}
+		logRecords := ourHook.Copy()
+		
+		fmt.Fprint(w, "[")
+		for i, rec := range logRecords {
+			recBytes, err := formatter.Format(rec)
+			if err != nil {
+				log.Info("Could not convert log record ", rec, err)
+				continue
+			}
+			w.Write(recBytes)
+			if i != len(logRecords) - 1 {
+				fmt.Fprint(w, ",")
+			}
+		}
+		fmt.Fprint(w, "]")
 	})
 
 	server := &http.Server{Addr: ":" + strconv.Itoa(port), Handler: nil}
