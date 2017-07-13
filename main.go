@@ -15,7 +15,7 @@ import (
 )
 
 var log = logrus.New()
-var ourHook = newCappedInMemoryRecorderHook(20)
+var ourHook = newCappedInMemoryRecorderHook(5)
 
 func main() {
 

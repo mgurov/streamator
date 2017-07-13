@@ -3,6 +3,7 @@ package main
 import (
 	"sync"
 	"github.com/sirupsen/logrus"
+	"fmt"
 )
 
 type cappedInMemoryRecorderHook struct {
@@ -46,11 +47,22 @@ func (h *cappedInMemoryRecorderHook) Copy() []*logrus.Entry {
 	if (!h.owerwrites) {
 		//todo: test me now
 		return h.records[:h.wIndex]
-	} 
+	}
+
+	fmt.Println("Copying", h.records)
+	fmt.Println("wIndex", h.wIndex)
 
 	result := make([]*logrus.Entry, len(h.records))
 
-	copy(result, h.records[h.wIndex:])	
-	copy(result[h.wIndex:], h.records[:h.wIndex])	
+	fmt.Println("h.records[h.wIndex:]", h.records[h.wIndex:])
+	copy(result, h.records[h.wIndex:])
+	fmt.Println("result", result)
+
+	fmt.Println("result[h.wIndex:]", result[len(result) - h.wIndex:])
+	fmt.Println("h.records[:h.wIndex]", h.records[:h.wIndex])
+
+	copy(result[len(result) - h.wIndex:], h.records[:h.wIndex])
+	fmt.Println("result", result)
+
 	return result
 }
