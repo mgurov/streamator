@@ -2,14 +2,14 @@ package main
 
 import (
 	"sync"
+
 	"github.com/sirupsen/logrus"
-	"fmt"
 )
 
 type cappedInMemoryRecorderHook struct {
-	m sync.Mutex
-	records []*logrus.Entry
-	wIndex  int
+	m          sync.Mutex
+	records    []*logrus.Entry
+	wIndex     int
 	owerwrites bool
 }
 
@@ -32,7 +32,7 @@ func (h *cappedInMemoryRecorderHook) Fire(e *logrus.Entry) error {
 
 	h.records[h.wIndex] = e
 
-	h.wIndex ++
+	h.wIndex++
 	if h.wIndex >= len(h.records) {
 		h.wIndex = 0
 		h.owerwrites = true
@@ -44,14 +44,14 @@ func (h *cappedInMemoryRecorderHook) Copy() []*logrus.Entry {
 	h.m.Lock()
 	defer h.m.Unlock()
 
-	if (!h.owerwrites) {
+	if !h.owerwrites {
 		//todo: test me now
 		return h.records[:h.wIndex]
 	}
 
 	result := make([]*logrus.Entry, len(h.records))
 	copy(result, h.records[h.wIndex:])
-	copy(result[len(result) - h.wIndex:], h.records[:h.wIndex])
+	copy(result[len(result)-h.wIndex:], h.records[:h.wIndex])
 
 	return result
 }
