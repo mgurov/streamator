@@ -30,13 +30,13 @@ func main() {
 	wg.Add(1)
 	go tick(&wg, quit)
 
-	wg.Add(1)
-	go listenToCtrlC(&wg, quit)
-
 	go startHTTP(*portFlag)
 
-	wg.Wait()
+	listenToCtrlC()
 
+	fmt.Println("\nAborting...")
+	quit <- nil
+	wg.Wait()
 	fmt.Printf("%#v\n", ourHook.Copy())
 }
 
@@ -56,14 +56,11 @@ func tick(wg *sync.WaitGroup, quit <-chan interface{}) {
 	}
 }
 
-func listenToCtrlC(wg *sync.WaitGroup, quit chan<- interface{}) {
+func listenToCtrlC() {
 	signalChan := make(chan os.Signal, 0)
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
 	signal.Stop(signalChan)
-	fmt.Println("\nAborting...")
-	quit <- nil
-	wg.Done()
 }
 
 func startHTTP(port int) {
