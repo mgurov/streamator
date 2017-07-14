@@ -15,12 +15,14 @@ import (
 )
 
 var log = logrus.New()
-var ourHook = newCappedInMemoryRecorderHook(10)
 
 func main() {
 
 	portFlag := flag.Int("port", 8080, "port to listen at")
+	memoryCapFlag := flag.Int("cap", 100, "memory cap, e.g. how much log messages to retain")
 	flag.Parse()
+
+	var ourHook = newCappedInMemoryRecorderHook(*memoryCapFlag)
 
 	log.Hooks.Add(ourHook)
 
@@ -31,7 +33,7 @@ func main() {
 	go tick(wg, quit)
 
 	quitServer := make(chan interface{})
-	startHTTP(*portFlag, wg, quitServer)
+	startHTTP(*portFlag, wg, ourHook, quitServer)
 
 	listenToCtrlC()
 
@@ -64,7 +66,7 @@ func listenToCtrlC() {
 	signal.Stop(signalChan)
 }
 
-func startHTTP(port int, wg *sync.WaitGroup, quit <-chan interface{}) {
+func startHTTP(port int, wg *sync.WaitGroup, ourHook *cappedInMemoryRecorderHook, quit <-chan interface{}) {
 	wg.Add(1)
 
 	http.HandleFunc("/ticks", func(w http.ResponseWriter, r *http.Request) {
