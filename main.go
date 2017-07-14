@@ -39,7 +39,6 @@ func main() {
 	quit <- nil
 	quitServer <- nil
 	wg.Wait()
-	fmt.Printf("%#v\n", ourHook.Copy())
 }
 
 func tick(wg *sync.WaitGroup, quit <-chan interface{}) {
