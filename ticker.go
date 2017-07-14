@@ -25,6 +25,7 @@ func startTicker(wg *sync.WaitGroup) *ticker {
 					Error("Hello, world ")
 			case <-t.quit:
 				ticker.Stop()
+				log.Info("stopping ticker")
 				wg.Done()
 				return
 			}
