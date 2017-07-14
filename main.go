@@ -73,6 +73,8 @@ func startHTTP(port int, wg *sync.WaitGroup, quit <-chan interface{}) {
 		formatter := logrus.JSONFormatter{}
 		logRecords := ourHook.Copy()
 		
+		w.Header().Add("Content-type", "text/json")
+		
 		fmt.Fprint(w, "[")
 		for i, rec := range logRecords {
 			recBytes, err := formatter.Format(rec)
