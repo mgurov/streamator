@@ -32,14 +32,13 @@ func main() {
 	wg.Add(1)
 	go tick(wg, quit)
 
-	quitServer := make(chan interface{})
-	startHTTP(*portFlag, wg, ourHook, quitServer)
+	restServer := startRestServer(*portFlag, wg, ourHook)
 
 	listenToCtrlC()
 
 	log.Info("Stopping the services")
 	quit <- nil
-	quitServer <- nil
+	restServer.Stop()
 	wg.Wait()
 }
 
@@ -66,16 +65,20 @@ func listenToCtrlC() {
 	signal.Stop(signalChan)
 }
 
-func startHTTP(port int, wg *sync.WaitGroup, ourHook *cappedInMemoryRecorderHook, quit <-chan interface{}) {
+type restServer struct {
+	quit chan interface{}
+}
+
+func startRestServer(port int, wg *sync.WaitGroup, data dataProvider) *restServer {
 	wg.Add(1)
 
 	http.HandleFunc("/ticks", func(w http.ResponseWriter, r *http.Request) {
 
 		formatter := logrus.JSONFormatter{}
-		logRecords := ourHook.Copy()
-		
+		logRecords := data.Get()
+
 		w.Header().Add("Content-type", "text/json")
-		
+
 		fmt.Fprint(w, "[")
 		for i, rec := range logRecords {
 			recBytes, err := formatter.Format(rec)
@@ -84,7 +87,7 @@ func startHTTP(port int, wg *sync.WaitGroup, ourHook *cappedInMemoryRecorderHook
 				continue
 			}
 			w.Write(recBytes)
-			if i != len(logRecords) - 1 {
+			if i != len(logRecords)-1 {
 				fmt.Fprint(w, ",")
 			}
 		}
@@ -94,12 +97,6 @@ func startHTTP(port int, wg *sync.WaitGroup, ourHook *cappedInMemoryRecorderHook
 	server := &http.Server{Addr: ":" + strconv.Itoa(port), Handler: nil}
 
 	go func() {
-		<-quit
-		log.Info("Stopping the web server")
-		server.Close()
-	}()
-
-	go func() {
 		log.Info("Starting at port ", port)
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatal(err)
@@ -107,4 +104,19 @@ func startHTTP(port int, wg *sync.WaitGroup, ourHook *cappedInMemoryRecorderHook
 		wg.Done()
 	}()
 
+	s := &restServer{
+		quit: make(chan interface{}),
+	}
+
+	go func() {
+		<-s.quit
+		log.Info("Stopping the web server")
+		server.Close()
+	}()
+
+	return s
+}
+
+func (s *restServer) Stop() {
+	s.quit <- nil
 }

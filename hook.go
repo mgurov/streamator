@@ -6,6 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type dataProvider interface {
+	Get() []*logrus.Entry
+}
+
 type cappedInMemoryRecorderHook struct {
 	m          sync.Mutex
 	records    []*logrus.Entry
@@ -40,7 +44,7 @@ func (h *cappedInMemoryRecorderHook) Fire(e *logrus.Entry) error {
 	return nil
 }
 
-func (h *cappedInMemoryRecorderHook) Copy() []*logrus.Entry {
+func (h *cappedInMemoryRecorderHook) Get() []*logrus.Entry {
 	h.m.Lock()
 	defer h.m.Unlock()
 
