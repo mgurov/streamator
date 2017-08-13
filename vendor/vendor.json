@@ -13,6 +13,18 @@
 			"path": "golang.org/x/sys/unix",
 			"revision": "abf9c25f54453410d0c6668e519582a9e1115027",
 			"revisionTime": "2017-07-10T15:57:01Z"
+		},
+		{
+			"checksumSHA1": "zoNLwFuvZ5OPzUu1FwDApA/hesw=",
+			"path": "gopkg.in/olivere/elastic.v3",
+			"revision": "5a75b7d18bca7420e68338600e8c9f611435f911",
+			"revisionTime": "2017-06-16T12:19:52Z"
+		},
+		{
+			"checksumSHA1": "71CHD7qzrXrSdKbciegL16jFDnk=",
+			"path": "gopkg.in/sohlich/elogrus.v1",
+			"revision": "c05b30617306ca2e6019db771d491c7268e16058",
+			"revisionTime": "2016-01-12T04:58:00Z"
 		}
 	],
 	"rootPath": "github.com/mgurov/streamator"

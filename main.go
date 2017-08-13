@@ -22,6 +22,14 @@ func main() {
 
 	log.Hooks.Add(ourHook)
 
+	esHook, err := newEsHook()
+
+	if err != nil {
+		log.Fatal("Couldn't create es hook:", err)
+	}
+
+	log.Hooks.Add(esHook)
+
 	wg := &sync.WaitGroup{}
 
 	ticker := startTicker(wg)
