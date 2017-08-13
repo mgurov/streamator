@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -9,7 +10,7 @@ type ticker struct {
 	quit chan interface{}
 }
 
-func startTicker(wg *sync.WaitGroup) *ticker {
+func startTicker(wg *sync.WaitGroup, logger *logrus.Entry) *ticker {
 	wg.Add(1)
 
 	t := &ticker{quit: make(chan interface{})}
@@ -20,12 +21,12 @@ func startTicker(wg *sync.WaitGroup) *ticker {
 		for {
 			select {
 			case t := <-ticker.C:
-				log.WithField("type", "repeating").
+				logger.WithField("type", "repeating").
 					WithField("duration", time.Now().Sub(t)).
 					Error("Hello, world ")
 			case <-t.quit:
 				ticker.Stop()
-				log.Info("stopping ticker")
+				logger.Info("stopping ticker")
 				wg.Done()
 				return
 			}

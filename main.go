@@ -10,16 +10,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var log = logrus.New()
-
 func main() {
 
 	portFlag := flag.Int("port", 8080, "port to listen at")
 	memoryCapFlag := flag.Int("cap", 100, "memory cap, e.g. how much log messages to retain")
+	appName := flag.String("app", "generic", "app name to put to the log field app")
 	flag.Parse()
 
 	var ourHook = newCappedInMemoryRecorderHook(*memoryCapFlag)
 
+	var log = logrus.New()	
 	log.Hooks.Add(ourHook)
 
 	esHook, err := newEsHook()
@@ -32,9 +32,11 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
-	ticker := startTicker(wg)
+	logWithApp := log.WithField("app", *appName)
 
-	restServer := startRestServer(*portFlag, wg, ourHook)
+	ticker := startTicker(wg, logWithApp)
+
+	restServer := startRestServer(*portFlag, wg, ourHook, logWithApp)
 
 	listenToCtrlC()
 

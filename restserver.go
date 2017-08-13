@@ -12,7 +12,7 @@ type restServer struct {
 	quit chan interface{}
 }
 
-func startRestServer(port int, wg *sync.WaitGroup, data dataProvider) *restServer {
+func startRestServer(port int, wg *sync.WaitGroup, data dataProvider, logger *logrus.Entry) *restServer {
 	wg.Add(1)
 
 	http.HandleFunc("/ticks", func(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +26,7 @@ func startRestServer(port int, wg *sync.WaitGroup, data dataProvider) *restServe
 		for i, rec := range logRecords {
 			recBytes, err := formatter.Format(rec)
 			if err != nil {
-				log.Info("Could not convert log record ", rec, err)
+				logger.Info("Could not convert log record ", rec, err)
 				continue
 			}
 			w.Write(recBytes)
@@ -40,9 +40,9 @@ func startRestServer(port int, wg *sync.WaitGroup, data dataProvider) *restServe
 	server := &http.Server{Addr: ":" + strconv.Itoa(port), Handler: nil}
 
 	go func() {
-		log.Info("Starting at port ", port)
+		logger.Info("Starting at port ", port)
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 		wg.Done()
 	}()
@@ -53,7 +53,7 @@ func startRestServer(port int, wg *sync.WaitGroup, data dataProvider) *restServe
 
 	go func() {
 		<-s.quit
-		log.Info("Stopping the web server")
+		logger.Info("Stopping the web server")
 		server.Close()
 	}()
 
