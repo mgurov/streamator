@@ -19,12 +19,14 @@ func startTicker(wg *sync.WaitGroup, logger *logrus.Entry) *ticker {
 
 	go func() {
 		odd := true
+		var counter int64
 		for {
 			select {
 			case t := <-ticker.C:
 				logger.WithField("type", "repeating").
 					WithField("duration", time.Now().Sub(t)).
-					Error("Hello, world ", odd)
+					Error("Hello, world ", counter, odd)
+				counter++
 				odd = !odd	
 			case <-t.quit:
 				ticker.Stop()
