@@ -25,7 +25,8 @@ func startTicker(wg *sync.WaitGroup, logger *logrus.Entry) *ticker {
 			case t := <-ticker.C:
 				logger.WithField("type", "repeating").
 					WithField("duration", time.Now().Sub(t)).
-					Error("Hello, world ", counter, odd)
+					WithField("ml", "ml\na\nb\tc\nd").
+					Error("[Hello, world ", counter, odd)
 				counter++
 				odd = !odd	
 			case <-t.quit:
