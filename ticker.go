@@ -10,12 +10,12 @@ type ticker struct {
 	quit chan interface{}
 }
 
-func startTicker(wg *sync.WaitGroup, logger *logrus.Entry) *ticker {
+func startTicker(duration time.Duration, wg *sync.WaitGroup, logger *logrus.Entry) *ticker {
 	wg.Add(1)
 
 	t := &ticker{quit: make(chan interface{})}
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(duration)
 
 	go func() {
 		odd := true

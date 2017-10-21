@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"os"
 	"os/signal"
 	"sync"
@@ -12,6 +13,7 @@ import (
 
 func main() {
 
+	tickDuration := flag.Duration("duration", 5 * time.Second, "duration between log ticks")
 	portFlag := flag.Int("port", 8080, "port to listen at")
 	memoryCapFlag := flag.Int("cap", 100, "memory cap, e.g. how much log messages to retain")
 	appName := flag.String("app", "generic", "app name to put to the log field app")
@@ -34,7 +36,7 @@ func main() {
 
 	logWithApp := log.WithField("app", *appName)
 
-	ticker := startTicker(wg, logWithApp)
+	ticker := startTicker(*tickDuration, wg, logWithApp)
 
 	restServer := startRestServer(*portFlag, wg, ourHook, logWithApp)
 
