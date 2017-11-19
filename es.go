@@ -6,10 +6,10 @@ import (
 	"gopkg.in/olivere/elastic.v3"
 )
 
-func newEsHook() (logrus.Hook, error) {
-	client, err := elastic.NewClient(elastic.SetURL("http://localhost:9200"), elastic.SetSniff(false))
+func newEsHook(elasticURL, elasticReportHost, elasticIndex string) (logrus.Hook, error) {
+	client, err := elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false))
 	if err != nil {
 		return nil, err
 	}	
-	return elogrus.NewElasticHook(client, "localhost", logrus.DebugLevel, "mylog")
+	return elogrus.NewElasticHook(client, elasticReportHost, logrus.DebugLevel, elasticIndex)
 }
